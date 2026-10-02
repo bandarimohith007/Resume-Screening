@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Resume Rankings</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+        body {
+
+            margin: 0;
+            padding: 0;
+
+            font-family: Arial, sans-serif;
+
+            background: linear-gradient(
+                135deg,
+                #141e30,
+                #243b55
+            );
+
+            min-height: 100vh;
+
+            color: white;
+        }
+
+        .navbar {
+
+            background: rgba(0,0,0,0.2);
+
+            padding: 20px;
+
+            text-align: center;
+
+            font-size: 30px;
+
+            font-weight: bold;
+
+            box-shadow: 0px 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .container {
+
+            width: 92%;
+
+            max-width: 1400px;
+
+            margin: auto;
+
+            padding-top: 40px;
+
+            padding-bottom: 40px;
+        }
+
+        .table-card {
+
+            background: white;
+
+            color: black;
+
+            padding: 25px;
+
+            border-radius: 18px;
+
+            box-shadow: 0px 0px 15px rgba(0,0,0,0.2);
+
+            overflow-x: auto;
+        }
+
+        h1 {
+
+            text-align: center;
+
+            margin-bottom: 30px;
+        }
+
+        table {
+
+            width: 100%;
+
+            border-collapse: collapse;
+        }
+
+        th, td {
+
+            padding: 15px;
+
+            text-align: center;
+
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+
+            background: #243b55;
+
+            color: white;
+        }
+
+        tr:nth-child(even) {
+
+            background: #f5f5f5;
+        }
+
+        tr:hover {
+
+            background: #e8f0ff;
+        }
+
+        .role {
+
+            color: #243b55;
+
+            font-weight: bold;
+        }
+
+        .score {
+
+            color: green;
+
+            font-weight: bold;
+        }
+
+        .graph-container {
+
+            display: flex;
+
+            gap: 30px;
+
+            justify-content: center;
+
+            align-items: stretch;
+
+            margin-top: 40px;
+
+            flex-wrap: wrap;
+        }
+
+        .card {
+
+            background: white;
+
+            color: black;
+
+            padding: 20px;
+
+            border-radius: 18px;
+
+            box-shadow: 0px 0px 15px rgba(0,0,0,0.2);
+        }
+
+        .bar-card {
+
+            width: 550px;
+        }
+
+        .pie-card {
+
+            width: 400px;
+        }
+
+        .card h2 {
+
+            text-align: center;
+
+            color: #243b55;
+
+            margin-bottom: 20px;
+        }
+
+        canvas {
+
+            max-width: 100%;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="navbar">
+
+        HR Resume Screening Dashboard
+
+    </div>
+
+    <div class="container">
+
+        <!-- TABLE SECTION -->
+
+        <div class="table-card">
+
+            <h1>Candidate Rankings</h1>
+
+            <table>
+
+                <tr>
+
+                    <th>Resume</th>
+                    <th>Predicted Role</th>
+                    <th>ATS Score</th>
+
+                </tr>
+
+                {% for r in results %}
+
+                <tr>
+
+                    <td>{{ r.filename }}</td>
+
+                    <td class="role">
+
+                        {{ r.role }}
+
+                    </td>
+
+                    <td class="score">
+
+                        {{ r.score }}%
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </table>
+
+        </div>
+
+        <!-- HIDDEN DATA -->
+
+        <input type="hidden"
+               id="candidateNames"
+               value='{{ candidate_names|tojson }}'>
+
+        <input type="hidden"
+               id="candidateScores"
+               value='{{ candidate_scores|tojson }}'>
+
+        <input type="hidden"
+               id="ds"
+               value="{{ ds }}">
+
+        <input type="hidden"
+               id="web"
+               value="{{ web }}">
+
+        <input type="hidden"
+               id="hr"
+               value="{{ hr }}">
+
+        <input type="hidden"
+               id="finance"
+               value="{{ finance }}">
+
+        <input type="hidden"
+               id="general"
+               value="{{ general }}">
+
+        <!-- GRAPHS -->
+
+        <div class="graph-container">
+
+            <!-- BAR GRAPH -->
+
+            <div class="card bar-card">
+
+                <h2>
+
+                    ATS Score Comparison
+
+                </h2>
+
+                <canvas id="hrChart"></canvas>
+
+            </div>
+
+            <!-- PIE CHART -->
+
+            <div class="card pie-card">
+
+                <h2>
+
+                    Role Distribution
+
+                </h2>
+
+                <canvas id="roleChart"></canvas>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT -->
+
+    <script>
+
+        // GET DATA
+
+        const candidateNames = JSON.parse(
+            document.getElementById("candidateNames").value
+        );
+
+        const candidateScores = JSON.parse(
+            document.getElementById("candidateScores").value
+        );
+
+        const ds = parseInt(
+            document.getElementById("ds").value
+        );
+
+        const web = parseInt(
+            document.getElementById("web").value
+        );
+
+        const hr = parseInt(
+            document.getElementById("hr").value
+        );
+
+        const finance = parseInt(
+            document.getElementById("finance").value
+        );
+
+        const general = parseInt(
+            document.getElementById("general").value
+        );
+
+        // =========================
+        // BAR CHART
+        // =========================
+
+        const hrCtx =
+            document.getElementById('hrChart');
+
+        new Chart(hrCtx, {
+
+            type: 'bar',
+
+            data: {
+
+                labels: candidateNames,
+
+                datasets: [{
+
+                    label: 'ATS Scores',
+
+                    data: candidateScores,
+
+                    backgroundColor: [
+
+                        '#243b55',
+                        '#2a5298',
+                        '#4b6cb7',
+                        '#1e3c72',
+                        '#5c7cfa',
+                        '#3b5998',
+                        '#3949ab',
+                        '#1565c0',
+                        '#283593',
+                        '#42a5f5'
+
+                    ],
+
+                    borderWidth: 1
+
+                }]
+            },
+
+            options: {
+
+                responsive: true,
+
+                scales: {
+
+                    y: {
+
+                        beginAtZero: true,
+
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // =========================
+        // PIE CHART
+        // =========================
+
+        const roleCtx =
+            document.getElementById('roleChart');
+
+        new Chart(roleCtx, {
+
+            type: 'pie',
+
+            data: {
+
+                labels: [
+
+                    'Data Science',
+                    'Web Development',
+                    'HR',
+                    'Finance',
+                    'General'
+
+                ],
+
+                datasets: [{
+
+                    data: [
+
+                        ds,
+                        web,
+                        hr,
+                        finance,
+                        general
+
+                    ],
+
+                    backgroundColor: [
+
+                        '#1e88e5',
+                        '#43a047',
+                        '#f4511e',
+                        '#8e24aa',
+                        '#fbc02d'
+
+                    ]
+
+                }]
+            },
+
+            options: {
+
+                responsive: true
+            }
+        });
+
+    </script>
+
+</body>
+
+</html>

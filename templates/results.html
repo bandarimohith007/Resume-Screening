@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Resume Results</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+        body {
+
+            margin: 0;
+            padding: 0;
+
+            font-family: Arial, sans-serif;
+
+            background: linear-gradient(
+                135deg,
+                #1e3c72,
+                #2a5298
+            );
+
+            min-height: 100vh;
+
+            color: white;
+        }
+
+        .navbar {
+
+            background: rgba(0,0,0,0.2);
+
+            padding: 20px;
+
+            text-align: center;
+
+            font-size: 30px;
+
+            font-weight: bold;
+
+            box-shadow: 0px 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .container {
+
+            width: 90%;
+
+            max-width: 1300px;
+
+            margin: auto;
+
+            padding-top: 40px;
+
+            padding-bottom: 40px;
+        }
+
+        .card {
+
+            background: white;
+
+            color: black;
+
+            padding: 25px;
+
+            border-radius: 18px;
+
+            box-shadow: 0px 0px 15px rgba(0,0,0,0.2);
+
+            margin-bottom: 30px;
+        }
+
+        .result-card {
+
+            text-align: center;
+        }
+
+        .result-card h2 {
+
+            margin-bottom: 20px;
+
+            color: #1e3c72;
+        }
+
+        .skills-container {
+
+            display: flex;
+
+            gap: 30px;
+
+            flex-wrap: wrap;
+        }
+
+        .skill-box {
+
+            flex: 1;
+
+            min-width: 280px;
+        }
+
+        .skill-box h3 {
+
+            color: #2a5298;
+
+            margin-bottom: 15px;
+        }
+
+        ul {
+
+            padding-left: 20px;
+        }
+
+        li {
+
+            margin-bottom: 10px;
+
+            font-size: 17px;
+        }
+
+        .graph-container {
+
+            display: flex;
+
+            gap: 30px;
+
+            justify-content: center;
+
+            align-items: stretch;
+
+            flex-wrap: wrap;
+
+            margin-top: 20px;
+        }
+
+        .graph-card {
+
+            background: white;
+
+            color: black;
+
+            padding: 20px;
+
+            border-radius: 18px;
+
+            box-shadow: 0px 0px 15px rgba(0,0,0,0.2);
+        }
+
+        .bar-card {
+
+            width: 500px;
+        }
+
+        .pie-card {
+
+            width: 380px;
+        }
+
+        canvas {
+
+            max-width: 100%;
+        }
+
+        .score {
+
+            color: green;
+            font-weight: bold;
+        }
+
+        .role {
+
+            color: #1e3c72;
+            font-weight: bold;
+        }
+
+        .level {
+
+            color: #ff6600;
+            font-weight: bold;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="navbar">
+
+        AI Resume Screening Dashboard
+
+    </div>
+
+    <div class="container">
+
+        <!-- MAIN RESULT CARD -->
+
+        <div class="card result-card">
+
+            <h2>
+
+                Predicted Role:
+                <span class="role">
+                    {{ role }}
+                </span>
+
+            </h2>
+
+            <h2>
+
+                ATS Match Score:
+                <span class="score">
+                    {{ score }}%
+                </span>
+
+            </h2>
+
+            <h2>
+
+                Candidate Level:
+                <span class="level">
+                    {{ level }}
+                </span>
+
+            </h2>
+
+        </div>
+
+        <!-- SKILLS SECTION -->
+
+        <div class="skills-container">
+
+            <!-- MATCHED SKILLS -->
+
+            <div class="card skill-box">
+
+                <h3>Matched Skills</h3>
+
+                <ul>
+
+                    {% for skill in matched %}
+
+                    <li>{{ skill }}</li>
+
+                    {% endfor %}
+
+                </ul>
+
+            </div>
+
+            <!-- MISSING SKILLS -->
+
+            <div class="card skill-box">
+
+                <h3>Missing Skills</h3>
+
+                <ul>
+
+                    {% for skill in missing %}
+
+                    <li>{{ skill }}</li>
+
+                    {% endfor %}
+
+                </ul>
+
+            </div>
+
+        </div>
+
+        <!-- HIDDEN VALUES -->
+
+        <input type="hidden"
+               id="scoreValue"
+               value="{{ score }}">
+
+        <input type="hidden"
+               id="matchedCount"
+               value="{{ matched|length }}">
+
+        <input type="hidden"
+               id="missingCount"
+               value="{{ missing|length }}">
+
+        <!-- GRAPHS -->
+
+        <div class="graph-container">
+
+            <!-- BAR GRAPH -->
+
+            <div class="graph-card bar-card">
+
+                <h3 style="text-align:center;
+                           color:#1e3c72;">
+
+                    ATS Score Analysis
+
+                </h3>
+
+                <canvas id="atsChart"></canvas>
+
+            </div>
+
+            <!-- PIE CHART -->
+
+            <div class="graph-card pie-card">
+
+                <h3 style="text-align:center;
+                           color:#1e3c72;">
+
+                    Skills Distribution
+
+                </h3>
+
+                <canvas id="skillsChart"></canvas>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT -->
+
+    <script>
+
+        // GET VALUES
+
+        const score = parseFloat(
+            document.getElementById("scoreValue").value
+        );
+
+        const matchedCount = parseInt(
+            document.getElementById("matchedCount").value
+        );
+
+        const missingCount = parseInt(
+            document.getElementById("missingCount").value
+        );
+
+        // =========================
+        // ATS BAR CHART
+        // =========================
+
+        const atsCtx =
+            document.getElementById('atsChart');
+
+        new Chart(atsCtx, {
+
+            type: 'bar',
+
+            data: {
+
+                labels: ['ATS Score'],
+
+                datasets: [{
+
+                    label: 'ATS Score',
+
+                    data: [score],
+
+                    backgroundColor: [
+
+                        '#2a5298'
+
+                    ],
+
+                    borderWidth: 1
+
+                }]
+            },
+
+            options: {
+
+                responsive: true,
+
+                scales: {
+
+                    y: {
+
+                        beginAtZero: true,
+
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // =========================
+        // PIE CHART
+        // =========================
+
+        const skillsCtx =
+            document.getElementById('skillsChart');
+
+        new Chart(skillsCtx, {
+
+            type: 'pie',
+
+            data: {
+
+                labels: [
+
+                    'Matched Skills',
+                    'Missing Skills'
+
+                ],
+
+                datasets: [{
+
+                    data: [
+
+                        matchedCount,
+                        missingCount
+
+                    ],
+
+                    backgroundColor: [
+
+                        '#2ecc71',
+                        '#e74c3c'
+
+                    ]
+
+                }]
+            },
+
+            options: {
+
+                responsive: true
+            }
+        });
+
+    </script>
+
+</body>
+
+</html>

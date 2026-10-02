@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>HR Dashboard</title>
+
+    <style>
+
+        body {
+
+            margin: 0;
+            padding: 0;
+
+            font-family: Arial, sans-serif;
+
+            background: linear-gradient(
+                135deg,
+                #141e30,
+                #243b55
+            );
+
+            min-height: 100vh;
+        }
+
+        .navbar {
+
+            background: rgba(0,0,0,0.25);
+
+            padding: 20px;
+
+            color: white;
+
+            text-align: center;
+
+            font-size: 28px;
+
+            font-weight: bold;
+
+            box-shadow: 0px 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .dashboard-container {
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            margin-top: 70px;
+        }
+
+        .dashboard-card {
+
+            background: white;
+
+            width: 500px;
+
+            padding: 40px;
+
+            border-radius: 20px;
+
+            box-shadow: 0px 0px 20px rgba(0,0,0,0.3);
+
+            text-align: center;
+        }
+
+        h2 {
+
+            color: #243b55;
+
+            margin-bottom: 25px;
+        }
+
+        .info-text {
+
+            color: gray;
+
+            margin-bottom: 30px;
+
+            line-height: 1.5;
+        }
+
+        input[type=file] {
+
+            width: 100%;
+
+            padding: 12px;
+
+            border-radius: 10px;
+
+            border: 1px solid #ccc;
+
+            background: #f5f5f5;
+
+            margin-bottom: 25px;
+        }
+
+        button {
+
+            width: 100%;
+
+            padding: 14px;
+
+            background: #243b55;
+
+            color: white;
+
+            border: none;
+
+            border-radius: 10px;
+
+            font-size: 17px;
+
+            cursor: pointer;
+
+            transition: 0.3s;
+        }
+
+        button:hover {
+
+            background: #141e30;
+
+            transform: scale(1.03);
+        }
+
+        .features {
+
+            margin-top: 30px;
+
+            text-align: left;
+        }
+
+        .features li {
+
+            margin-bottom: 10px;
+
+            color: #444;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="navbar">
+
+        HR Dashboard
+
+    </div>
+
+    <div class="dashboard-container">
+
+        <div class="dashboard-card">
+
+            <h2>Upload Multiple Resumes</h2>
+
+            <p class="info-text">
+
+                Upload multiple candidate resumes and let the AI system
+                rank, analyze, and compare candidates automatically.
+
+            </p>
+
+            <form action="/multi-results"
+                  method="POST"
+                  enctype="multipart/form-data">
+
+                <input type="file"
+                       name="resumes"
+                       multiple
+                       required>
+
+                <button type="submit">
+
+                    Analyze Resumes
+
+                </button>
+
+            </form>
+
+            <div class="features">
+
+                <h3>Features:</h3>
+
+                <ul>
+
+                    <li>ATS Score Comparison</li>
+
+                    <li>Candidate Ranking</li>
+
+                    <li>Role Prediction</li>
+
+                    <li>Skill Matching</li>
+
+                    <li>Graph Visualization</li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>
